@@ -150,12 +150,26 @@ fi
 # ── Tmux context ────────────────────────────────────────────────────────────
 
 TMUX_INFO=""
+TMUX_SESSION=""
+TMUX_WINDOW=""
 if [[ -n "${TMUX:-}" ]]; then
   TMUX_SESSION=$(tmux display-message -p '#S' 2>/dev/null || echo "")
   TMUX_WINDOW=$(tmux display-message -p '#I:#W' 2>/dev/null || echo "")
   if [[ -n "$TMUX_SESSION" ]]; then
     TMUX_INFO="${TMUX_SESSION} → ${TMUX_WINDOW}"
   fi
+fi
+
+# Build MuxPod deep link
+MUXPOD_LINK=""
+if [[ -n "${MUXPOD_DEEP_LINK_ID:-}" && -n "$TMUX_SESSION" ]]; then
+  MUXPOD_URL="muxpod://connect?server=$(printf '%s' "$MUXPOD_DEEP_LINK_ID" | jq -sRr @uri)"
+  MUXPOD_URL="${MUXPOD_URL}&session=$(printf '%s' "$TMUX_SESSION" | jq -sRr @uri)"
+  if [[ -n "$TMUX_WINDOW" ]]; then
+    WINDOW_NAME="${TMUX_WINDOW#*:}"
+    MUXPOD_URL="${MUXPOD_URL}&window=$(printf '%s' "$WINDOW_NAME" | jq -sRr @uri)"
+  fi
+  MUXPOD_LINK="[Open in MuxPod](${MUXPOD_URL})"
 fi
 
 # ── Build final message ────────────────────────────────────────────────────
@@ -168,6 +182,9 @@ DETAILS="💻 Machine: \`${MACHINE}\`
 
 [[ -n "$TMUX_INFO" ]] && DETAILS="${DETAILS}
 🖥 Tmux: \`${TMUX_INFO}\`"
+
+[[ -n "$MUXPOD_LINK" ]] && DETAILS="${DETAILS}
+🔗 ${MUXPOD_LINK}"
 
 [[ -n "$CONTEXT" ]] && DETAILS="${DETAILS}
 
