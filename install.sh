@@ -37,15 +37,15 @@ _prompt_value() {
 
   if [[ -n "$current_value" ]]; then
     read -rp "$prompt_text [$current_value]: " input
-    eval "$var_name=\"${input:-$current_value}\""
+    printf -v "$var_name" '%s' "${input:-$current_value}"
   elif [[ -n "$default" ]]; then
     read -rp "$prompt_text ($default): " input
-    eval "$var_name=\"${input:-$default}\""
+    printf -v "$var_name" '%s' "${input:-$default}"
   else
     while true; do
       read -rp "$prompt_text: " input
       if [[ -n "$input" ]]; then
-        eval "$var_name=\"$input\""
+        printf -v "$var_name" '%s' "$input"
         break
       fi
       echo "  This field is required."

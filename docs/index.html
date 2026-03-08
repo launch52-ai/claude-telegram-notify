@@ -18,11 +18,11 @@
 </div>
 <script>
   var url = decodeURIComponent(window.location.hash.slice(1));
-  if (url) {
+  if (url && url.startsWith('muxpod://')) {
     document.getElementById('fallback').href = url;
     window.location.href = url;
   } else {
-    document.querySelector('.container').innerHTML = '<p>No redirect URL provided.</p>';
+    document.querySelector('.container').innerHTML = '<p>Invalid or missing redirect URL.</p>';
   }
 </script>
 </body>
