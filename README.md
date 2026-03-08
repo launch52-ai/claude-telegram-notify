@@ -32,6 +32,7 @@ The installer walks you through everything:
 - Paste your bot token
 - Send a message to your bot — it auto-detects your chat ID
 - Name your machine (defaults to hostname)
+- Optionally configure [MuxPod](https://github.com/moezakura/mux-pod) deep linking
 - Sends a test notification to verify
 - Installs hooks into `~/.claude/settings.json` (global, applies to all projects)
 
@@ -71,6 +72,7 @@ Each message includes:
 - **Tool details** — tool name + command for permission requests
 - **Question + options** — for AskUserQuestion prompts
 - **Last prompt** — your most recent message to Claude (for Stop/idle events)
+- **MuxPod link** — tappable deep link to open the terminal in MuxPod (optional)
 
 ## How It Works
 
@@ -82,6 +84,18 @@ Claude Code fires hook events at key moments. The `notify.sh` script:
 4. For stop/idle: reads the last user message from the session transcript
 5. Sends a formatted message to your Telegram chat
 6. Runs asynchronously (non-blocking) so it doesn't slow down Claude
+
+## MuxPod Integration (Optional)
+
+If you use [MuxPod](https://github.com/moezakura/mux-pod) as a mobile tmux client, notifications can include a tappable deep link that opens the terminal directly in the app.
+
+During install, enter your MuxPod **Deep Link ID** (from MuxPod's connection settings). The notification will include a link like:
+
+```
+🔗 Open in MuxPod → muxpod://connect?server=macbook-pro&session=dev&window=claude
+```
+
+Set `MUXPOD_DEEP_LINK_ID=` in `.env` to match the ID configured in MuxPod. Leave empty to disable.
 
 ## Manual Hook Configuration
 

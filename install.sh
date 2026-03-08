@@ -147,6 +147,17 @@ _prompt_value MACHINE_NAME "Machine name" "$(hostname -s)"
 
 echo ""
 
+# MuxPod deep link (optional)
+echo "Step 4: MuxPod deep link (optional)"
+echo "  If you use MuxPod (tmux client for mobile), enter the"
+echo "  Deep Link ID from your MuxPod connection settings."
+echo "  Leave empty to skip."
+echo ""
+read -rp "MuxPod Deep Link ID [${MUXPOD_DEEP_LINK_ID:-}]: " input
+MUXPOD_DEEP_LINK_ID="${input:-${MUXPOD_DEEP_LINK_ID:-}}"
+
+echo ""
+
 # Save .env
 _save_env
 echo "✓ Saved .env"
