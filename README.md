@@ -87,15 +87,17 @@ Claude Code fires hook events at key moments. The `notify.sh` script:
 
 ## MuxPod Integration (Optional)
 
-If you use [MuxPod](https://github.com/moezakura/mux-pod) as a mobile tmux client, notifications can include a tappable deep link that opens the terminal directly in the app.
+If you use [MuxPod](https://github.com/moezakura/mux-pod) as a mobile tmux client, notifications include a tappable **"Open in MuxPod"** button that opens the terminal directly in the app — right session, right window.
 
-During install, enter your MuxPod **Deep Link ID** (from MuxPod's connection settings). The notification will include a link like:
+During install, enter your MuxPod **Deep Link ID** (from MuxPod's connection settings). Notifications will show an inline button that links to:
 
 ```
-🔗 Open in MuxPod → muxpod://connect?server=macbook-pro&session=dev&window=claude
+muxpod://connect?server=<deep-link-id>&session=<tmux-session>&window=<window-index>
 ```
 
-Set `MUXPOD_DEEP_LINK_ID=` in `.env` to match the ID configured in MuxPod. Leave empty to disable.
+Since Telegram blocks custom URL schemes, the button goes through an HTTPS redirect page hosted on GitHub Pages that forwards to the `muxpod://` URL.
+
+Set `MUXPOD_DEEP_LINK_ID` in `.env` to match the ID configured in MuxPod. Leave empty to disable.
 
 ## Manual Hook Configuration
 

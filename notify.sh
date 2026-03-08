@@ -167,11 +167,14 @@ if [[ -n "${MUXPOD_DEEP_LINK_ID:-}" && -n "$TMUX_SESSION" ]]; then
   MUXPOD_URL="muxpod://connect?server=$(printf '%s' "$MUXPOD_DEEP_LINK_ID" | jq -sRr @uri)"
   MUXPOD_URL="${MUXPOD_URL}&session=$(printf '%s' "$TMUX_SESSION" | jq -sRr @uri)"
   if [[ -n "$TMUX_WINDOW" ]]; then
-    WINDOW_NAME="${TMUX_WINDOW#*:}"
-    MUXPOD_URL="${MUXPOD_URL}&window=$(printf '%s' "$WINDOW_NAME" | jq -sRr @uri)"
+    WINDOW_INDEX="${TMUX_WINDOW%%:*}"
+    MUXPOD_URL="${MUXPOD_URL}&window=$(printf '%s' "$WINDOW_INDEX" | jq -sRr @uri)"
+  fi
+  TMUX_PANE_INDEX=$(tmux display-message -p '#{pane_index}' 2>/dev/null || echo "")
+  if [[ -n "$TMUX_PANE_INDEX" ]]; then
+    MUXPOD_URL="${MUXPOD_URL}&pane=$(printf '%s' "$TMUX_PANE_INDEX" | jq -sRr @uri)"
   fi
   # Wrap in HTTPS redirect page so Telegram makes it clickable
-  ENCODED_MUXPOD=$(printf '%s' "$MUXPOD_URL" | jq -sRr @uri)
   MUXPOD_LINK="${REDIRECT_BASE}/#${MUXPOD_URL}"
 fi
 
@@ -212,7 +215,7 @@ if [[ -n "$MUXPOD_LINK" ]]; then
   REPLY_MARKUP=$(jq -nc --arg url "$MUXPOD_LINK" '
     {inline_keyboard: [[{text: "📱 Open in MuxPod", url: $url}]]}
   ')
-  CURL_ARGS+=(-d "reply_markup=${REPLY_MARKUP}")
+  CURL_ARGS+=(--data-urlencode "reply_markup=${REPLY_MARKUP}")
 fi
 
 # Send via Telegram Bot API (fire-and-forget, don't block Claude)
