@@ -118,31 +118,29 @@ esac
 # ── Last user message from transcript ───────────────────────────────────────
 
 LAST_MSG=""
-if [[ "$HOOK_EVENT" == "Stop" || "$HOOK_EVENT" == "Notification" ]]; then
-  if [[ "$CWD" != "unknown" && "$SESSION_ID" != "unknown" ]]; then
-    SANITIZED_CWD="$(echo "$CWD" | tr '/' '-')"
-    TRANSCRIPT="$HOME/.claude/projects/${SANITIZED_CWD}/${SESSION_ID}.jsonl"
-    if [[ -f "$TRANSCRIPT" ]]; then
-      LAST_MSG=$(jq -rs '
-        [.[] | select(.type == "user") |
-         select(.message.content | type == "string" or
-                (type == "array" and any(.[]; .type == "text")))] |
-        reverse |
-        map(.message.content |
-            if type == "string" then .
-            else [.[] | select(.type == "text") | .text] | join(" ") end |
-            gsub("\n"; " ") | gsub("  +"; " ")) |
-        map(select(
-            (startswith("[Request interrupted") | not) and
-            (startswith("[Request cancelled") | not) and
-            (startswith("This session is being continued") | not) and
-            (. != "")
-        )) |
-        first // ""
-      ' < "$TRANSCRIPT" 2>/dev/null || echo "")
-      if [[ ${#LAST_MSG} -gt 200 ]]; then
-        LAST_MSG="${LAST_MSG:0:197}..."
-      fi
+if [[ "$CWD" != "unknown" && "$SESSION_ID" != "unknown" ]]; then
+  SANITIZED_CWD="$(echo "$CWD" | tr '/' '-')"
+  TRANSCRIPT="$HOME/.claude/projects/${SANITIZED_CWD}/${SESSION_ID}.jsonl"
+  if [[ -f "$TRANSCRIPT" ]]; then
+    LAST_MSG=$(jq -rs '
+      [.[] | select(.type == "user") |
+       select(.message.content | type == "string" or
+              (type == "array" and any(.[]; .type == "text")))] |
+      reverse |
+      map(.message.content |
+          if type == "string" then .
+          else [.[] | select(.type == "text") | .text] | join(" ") end |
+          gsub("\n"; " ") | gsub("  +"; " ")) |
+      map(select(
+          (startswith("[Request interrupted") | not) and
+          (startswith("[Request cancelled") | not) and
+          (startswith("This session is being continued") | not) and
+          (. != "")
+      )) |
+      first // ""
+    ' < "$TRANSCRIPT" 2>/dev/null || echo "")
+    if [[ ${#LAST_MSG} -gt 200 ]]; then
+      LAST_MSG="${LAST_MSG:0:197}..."
     fi
   fi
 fi

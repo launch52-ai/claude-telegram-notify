@@ -4,6 +4,10 @@ Get Telegram notifications when Claude Code finishes a task, needs permission, a
 
 Uses Claude Code [hooks](https://docs.anthropic.com/en/docs/claude-code/hooks) to send messages via the Telegram Bot API.
 
+<p align="center">
+  <img src="docs/screenshot.png" alt="Telegram notification examples" width="350">
+</p>
+
 ## Hook Events
 
 | Hook | When it fires | What you see |
