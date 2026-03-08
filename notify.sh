@@ -160,8 +160,9 @@ if [[ -n "${TMUX:-}" ]]; then
   fi
 fi
 
-# Build MuxPod deep link
+# Build MuxPod deep link via HTTPS redirect page
 MUXPOD_LINK=""
+REDIRECT_BASE="${MUXPOD_REDIRECT_URL:-https://launch52-ai.github.io/claude-telegram-notify}"
 if [[ -n "${MUXPOD_DEEP_LINK_ID:-}" && -n "$TMUX_SESSION" ]]; then
   MUXPOD_URL="muxpod://connect?server=$(printf '%s' "$MUXPOD_DEEP_LINK_ID" | jq -sRr @uri)"
   MUXPOD_URL="${MUXPOD_URL}&session=$(printf '%s' "$TMUX_SESSION" | jq -sRr @uri)"
@@ -169,7 +170,9 @@ if [[ -n "${MUXPOD_DEEP_LINK_ID:-}" && -n "$TMUX_SESSION" ]]; then
     WINDOW_NAME="${TMUX_WINDOW#*:}"
     MUXPOD_URL="${MUXPOD_URL}&window=$(printf '%s' "$WINDOW_NAME" | jq -sRr @uri)"
   fi
-  MUXPOD_LINK="[Open in MuxPod](${MUXPOD_URL})"
+  # Wrap in HTTPS redirect page so Telegram makes it clickable
+  ENCODED_MUXPOD=$(printf '%s' "$MUXPOD_URL" | jq -sRr @uri)
+  MUXPOD_LINK="${REDIRECT_BASE}/#${MUXPOD_URL}"
 fi
 
 # ── Build final message ────────────────────────────────────────────────────
@@ -183,9 +186,6 @@ DETAILS="💻 Machine: \`${MACHINE}\`
 [[ -n "$TMUX_INFO" ]] && DETAILS="${DETAILS}
 🖥 Tmux: \`${TMUX_INFO}\`"
 
-[[ -n "$MUXPOD_LINK" ]] && DETAILS="${DETAILS}
-🔗 ${MUXPOD_LINK}"
-
 [[ -n "$CONTEXT" ]] && DETAILS="${DETAILS}
 
 ${CONTEXT}"
@@ -197,13 +197,25 @@ readonly TEXT="${MESSAGE}
 
 ${DETAILS}"
 
+# Build curl args
+CURL_ARGS=(
+  -s -X POST
+  "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage"
+  -d "chat_id=${TELEGRAM_CHAT_ID}"
+  --data-urlencode "text=${TEXT}"
+  -d "parse_mode=Markdown"
+  -d "disable_notification=false"
+)
+
+# Add MuxPod button if deep link is available
+if [[ -n "$MUXPOD_LINK" ]]; then
+  REPLY_MARKUP=$(jq -nc --arg url "$MUXPOD_LINK" '
+    {inline_keyboard: [[{text: "📱 Open in MuxPod", url: $url}]]}
+  ')
+  CURL_ARGS+=(-d "reply_markup=${REPLY_MARKUP}")
+fi
+
 # Send via Telegram Bot API (fire-and-forget, don't block Claude)
-curl -s -X POST \
-  "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
-  -d chat_id="${TELEGRAM_CHAT_ID}" \
-  -d text="${TEXT}" \
-  -d parse_mode="Markdown" \
-  -d disable_notification=false \
-  > /dev/null 2>&1 &
+curl "${CURL_ARGS[@]}" > /dev/null 2>&1 &
 
 exit 0

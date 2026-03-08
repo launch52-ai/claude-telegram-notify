@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Opening MuxPod...</title>
+<style>
+  body { font-family: -apple-system, sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; background: #1a1a2e; color: #e0e0e0; }
+  .container { text-align: center; padding: 2rem; }
+  a { color: #4fc3f7; }
+</style>
+</head>
+<body>
+<div class="container">
+  <p>Redirecting to MuxPod...</p>
+  <p><small>If nothing happens, <a id="fallback" href="#">tap here</a>.</small></p>
+  <p><small>Make sure <a href="https://github.com/moezakura/mux-pod">MuxPod</a> is installed.</small></p>
+</div>
+<script>
+  var url = decodeURIComponent(window.location.hash.slice(1));
+  if (url) {
+    document.getElementById('fallback').href = url;
+    window.location.href = url;
+  } else {
+    document.querySelector('.container').innerHTML = '<p>No redirect URL provided.</p>';
+  }
+</script>
+</body>
+</html>
